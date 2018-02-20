@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # bomgen.py
 # devel@latke.net
 # modified 2013-11-05
@@ -64,7 +65,7 @@ for bomEntry in bomList:
     # exist, increment the count and add this refdes to the list.
     if not lookupList:
         # list is empty, just add this part to it.
-        #print '****Initializing lookupList'
+        print '****Initializing lookupList'
         refdesList = [RefDes]
         thisEntry = {'PartNum': PartNum, 'value': Value, 'count': 1, 'RefDesList': refdesList}
         lookupList.append(thisEntry)
@@ -75,28 +76,33 @@ for bomEntry in bomList:
             if thisPart['PartNum'] == PartNum:
                 thisPart['count'] += 1
                 thisPart['RefDesList'].append(RefDes)
-                #print 'Part already in list. New entry: ', thisPart
+                print 'Part already in list. New entry: ', thisPart, ' Count = ', thisPart['count']
                 gotIt = True
                 break
-
+        print 'Got it: ', gotIt
         if gotIt == False:
+            print 'Part not already in list ...'
             refdesList = [RefDes]
             thisEntry = {'PartNum': PartNum, 'value': Value, 'count': 1, 'RefDesList': refdesList}
+            print 'PartNum = ', PartNum
             lookupList.append(thisEntry)
-#           print 'Added ', thisEntry
+            print 'Added ', thisEntry
 
 # Now we've got a list of all of the part numbers with the count of each as well as the relevant refdeses.
 # Match the company part number with the orderable part number.
+print '\n\nMatching company part number with manufacturer number ...'
 finalBomList = []
 totalCost = 0.0
 for thisPart in lookupList:
+    print "thisPart: ", thisPart
     for part in partsList:
         if part['Part Number'] == thisPart['PartNum']:
             #print 'Match!'
-            #print 'Vendor and part number: ', part['Vendor'], part['Vendor P/N']
+            print 'Match! Vendor and part number: ', part['Vendor'], part['Vendor P/N']
             # The parts database includes a price per part, pull that and multiply by the count so we can get a price guesstimate.
             # We add the running total cost to the end, because I don't know how to put it in the file at the end as a separate line.
             price = part['Price Each (qty 25)']
+            print 'Price: ', price
             cost = float(price.strip("$")) * float(thisPart['count'])
             totalCost = totalCost + cost
             # Add this part to the list of all parts/vendors/part numbers.
