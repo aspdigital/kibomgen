@@ -106,7 +106,7 @@ for thisPart in lookupList:
             cost = float(price.strip("$")) * float(thisPart['count'])
             totalCost = totalCost + cost
             # Add this part to the list of all parts/vendors/part numbers.
-            finalBomList.append({'Part Number': thisPart['PartNum'], 'count': thisPart['count'], 'Vendor P/N': part['Vendor P/N'], 'Value': thisPart['value'], 'Vendor': part['Vendor'],'RefDesList': thisPart['RefDesList'], 'ext. cost': cost, 'total cost': totalCost})
+            finalBomList.append({'Part Number': thisPart['PartNum'], 'count': thisPart['count'], 'Vendor P/N': part['Vendor P/N'], 'Value': thisPart['value'], 'Vendor': part['Vendor'],'RefDesList': thisPart['RefDesList'], 'ext. cost': cost, 'total cost': totalCost, 'Qty on hand': part['Quantity On Hand']})
             break;
     else:
         # part was not found!
@@ -114,7 +114,7 @@ for thisPart in lookupList:
 
 # write it to the result csv file.
 finalBomFile = 'FinalBom.csv'
-fieldNames = ['Part Number', 'count', 'Vendor P/N', 'Value', 'Vendor', 'RefDesList', 'ext. cost', 'total cost']
+fieldNames = ['Part Number', 'count', 'Vendor P/N', 'Value', 'Vendor', 'RefDesList', 'ext. cost', 'total cost', 'Qty on hand']
 print 'Writing BOM file ', finalBomFile
 f = open(finalBomFile, 'wb')
 writer = csv.DictWriter(f, delimiter=',', fieldnames=fieldNames)
