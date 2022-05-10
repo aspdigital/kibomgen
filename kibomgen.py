@@ -11,6 +11,7 @@
 #   Vendor                  The vendor name
 #   Vendor P/N              The vendor's assigned part number
 #   Package                 Footprint/package
+#   Description             Describes the part
 #   Quantity On Hand        How many of these parts we have in stock (don't need to order)
 #   Price Each (qty 25)     WAG cost for each part, based on last time we looked at Mouser
 #
