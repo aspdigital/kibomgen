@@ -2,6 +2,7 @@
 # Python script to generate a BOM with orderable part numbers from a KiCad netlist.
 # Requires a CSV-formatted list of parts.
 # created 2022-05-06 asp, derived from the standard KiCad script bom_csv_grouped_by_value.py
+# Mod: 2022-05-10 asp, having the description in the result BOM is nice
 #
 ### Requirements for the master parts list CSV file ####
 # It must include the following columns with these exact names:
@@ -68,7 +69,7 @@
     Sorted By: Part number
     Output Fields: Part Number, Count, Ref Des List, Vendor P/N, Value, Vendor, Package, ext. cost, quantity on hand 
 
-    Command line: argv[0]           [1]   [2]      [3]
+    Command line: 
     python "pathToFile/kibomge.py" "%I" "%O.csv" "path_to_database.csv"
 """
 
@@ -203,11 +204,11 @@ for thisPart in lookupList:
             cost = float(price.strip("$")) * float(thisPart['count'])
             print('Price: ', price, '  Extended cost: ', cost)
             # Add this part to the list of all parts/vendors/part numbers.
-            finalBomList.append({'Part Number': thisPart['PartNum'], 'count': thisPart['count'], 'Vendor P/N': part['Vendor P/N'], 'Value': thisPart['value'], 'Vendor': part['Vendor'], 'Package': part['Package'], 'RefDesList': thisPart['RefDesList'], 'ext. cost': cost, 'Qty on hand': part['Quantity On Hand']})
+            finalBomList.append({'Part Number': thisPart['PartNum'], 'count': thisPart['count'], 'Vendor P/N': part['Vendor P/N'], 'Value': thisPart['value'], 'Vendor': part['Vendor'], 'Package': part['Package'], 'RefDesList': thisPart['RefDesList'], 'Description', part['Description'], 'ext. cost': cost, 'Qty on hand': part['Quantity On Hand']})
             break;
     else:
         # part was not found! This is an error.
-        finalBomList.append({'Part Number': thisPart['PartNum'], 'count': thisPart['count'], 'Vendor P/N': '????', 'Value': thisPart['value'], 'Vendor': '????', 'Package': part['Package'], 'RefDesList': thisPart['RefDesList'], 'ext. cost': 0})
+        finalBomList.append({'Part Number': thisPart['PartNum'], 'count': thisPart['count'], 'Vendor P/N': '????', 'Value': thisPart['value'], 'Vendor': '????', 'Package': '????', 'RefDesList': thisPart['RefDesList'], 'Description': '????', 'ext. cost': 0, 'Qty on hand': '????'})
 
 # Sort the Final BOM list by part type (A, B, C etc) and within the type by number and within number by value.
 finalBomList.sort(key = lambda k: k['Part Number'])
@@ -221,7 +222,7 @@ for thatPart in finalBomList:
 # write it to the result csv file.
 #
 finalBomFile = sys.argv[2]
-fieldNames = ['Part Number', 'count', 'RefDesList', 'Vendor P/N', 'Value', 'Vendor',  'Package', 'ext. cost', 'Qty on hand']
+fieldNames = ['Part Number', 'count', 'RefDesList', 'Vendor P/N', 'Value', 'Vendor',  'Package', 'Description', 'ext. cost', 'Qty on hand']
 print('Writing BOM file ', finalBomFile)
 with open(finalBomFile, 'w') as f:
     # first, write a header with some useful information.
