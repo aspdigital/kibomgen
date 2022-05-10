@@ -2,18 +2,18 @@
 KiCad uses Python or XSL scripts to generate bills of materials from schematics. From within the KiCad Schematic Editor, the user simply chooses Tools => Generate BOM  from the main menu, or clicks the BOM icon from the top toolbar to open the Bill of Material (sic) dialog. KiCad ships with a few example scripts which can output a BOM in text, HTML or CSV format.
 These scripts depend on information found in each symbol's properties. They give a list of parts, and can collate the same part and count them and provide a list of reference designators for them. 
 
-There is one big problem with the example scripts. The standard KiCad libraries do not have any real ordeable part infomration. Out of the box, you can't do what most people need a BOM for: to provide a list of parts with valid part numbers that you can use for orders. Obviously, one way to manage this is to embed a manufacturer or distributor part number in each symbol, but this presents a lot of problems, not the least of which is how do you manage simple parts list resistors? Nobody wants a library full of a hundred different resistor symbols that vary only in part value. At some point, KiCad will have a way to manage libraries using a database, but that day is not yet here. I've come up with a fairly simply scheme which involves a simple database (a spreadsheet), one custom field in KiCad symbols, and a Python script to generate useful BOMs.
+There is one big problem with the example scripts. The standard KiCad libraries do not have any real ordeable part information. Out of the box, you can't do what most people need a BOM for: to provide a list of parts with valid part numbers that you can use for orders. Obviously, one way to manage this is to embed a manufacturer or distributor part number in each symbol, but this presents a lot of problems, not the least of which is how do you manage simple parts list resistors? Nobody wants a library full of a hundred different resistor symbols that vary only in part value. At some point, KiCad will have a way to manage libraries using a database, but that day is not yet here. I've come up with a fairly simply scheme which involves a simple database (a spreadsheet), one custom field in KiCad symbols, and a Python script to generate useful BOMs.
 
 ## What we need
 A database of parts is used to keep track of every part we want to use in a design. Because I am not a database ninja, and honestly my parts list isn't giant, I decided to use a simple spreadsheet for my database. I use Macs, so I just use Apple's Numbers spreadsheet, which is rather competent. The only downside is that there's no way to programmatically access the contents of a Numbers spreadsheet from outside of Numbers, so after I make changes to my "database" I export the contents of the spreadsheet as a CSV file.
 
-Each line in the spreadsheet is the information for exactly one part. It has expected information like vendor name, vendor part number, footprint and a description. It also tells me the name of the library it's in. There is a column for part cost which generally infomrational but not too useful. (The idea was to do a Mouser or Octopart lookup but I never got around to it.) You can see all of the fields in the Parts Database.numbers file.
+Each line in the spreadsheet is the information for exactly one part. It has expected information like vendor name, vendor part number, footprint and a description. It also tells me the name of the library it's in. There is a column for part cost which generally infomrational but not too useful. (The idea was to do a Mouser or Octopart lookup but I never got around to it.) You can see all of the fields in the Parts Database.numbers file. My BOM script simply ignores the fields it doesn't need.
 
-In the first column of each line is the key: the part number. This part number is a "company" or "house" part number. Consider it to be a GUID.
+In the first column of each line is the key: the part number. This part number is a "company" or "house" part number. Consider it to be a GUID. Regarding database maintenance, it's bad practice to re-use a part number one it is assigned.
 
 The Numbers document's second sheet is a "key" which explains and defines my categories and numbering system.
 
-All of the parts in my KiCad symbol libraries have a custom field called **PN**. The value in this field must match a part number defined in the Parts Database.
+All of the parts in my KiCad symbol libraries have a custom field called **PN**. The value in this field must match a part number defined in the Parts Database. I have the visibility flag of this field set to hide it in the schematic, just to avoid clutter.
 
 ## Part Number format
 The part number is a simple three-part text field with a general format of **A-1000-0**, where the three parts are defined as follows:
@@ -24,12 +24,16 @@ The part number is a simple three-part text field with a general format of **A-1
 
 ### Non "family" parts
 
-For these parts, the **PN** field in the symbol must be populated with the complete part number as defined in the database. The script matches on full part numbers, and will give an error if there is no match for a part placed on the schematic.
+For these parts, the **PN** field in the symbol must be populated with the complete part number as defined in the database. The script matches on full part numbers, and will give an error if there is no match for a part placed on the schematic. 
+
+The variant part of the part number can be used for whatever you might find interesting. One example: I use a bunch of 0.1"-center box headers in various sizes, from 10 pins (2 rows of 5 pins each) to 20 pins (2 rows of 10 pins each). Part **L-1000-10** is the 2x5 header; part **L-1000-20** is the 2x10 header.
 
 ### Part "families"
 One big problem faced by engineers setting up a parts library/BOM system is how to handle passives. Consider resistors. Nobody wants a resistor library filled with a hundred or more different resistor symbols, one for each value you use. If you want to change the resistor value, you need to pull a new part from the library. It gets ugly pretty quickly.
 
 A solution is a part "family." Parts in a family vary in one and only one parameter. Again, resistors. Resistors come in different values, packages and tolerances. The most obvious thing to vary is the part value, so we can define a family as all 0805 1% resistors. Let's give these resistors a "base" part number: **B-1000**. We can use the part value as the variant, so a 10k 0805 1% resistor gets the part number **B-1000-10k0**. I have adopted the three-digit-plus-multiplier format for convenience and ease of parsing. A 100-ohm resistor is 100R; a 1 megohm resistor is 1M00.
+
+I have potentiometers as type K in my database, so for example **K-1005-10k** is a Bourns PTD902-2020K-A103 pot. The symbol for this pot has only **K-1005** in its **PN** field and the script correctly contatenates it with the Value field to get the database part number.
 
 SMT caps work in mostly the same manner: **C-1000-100pF** is a 100pF 5% C0G 0805 50V capacitor. **C-1000-1000pF** is a 1000pF 5% C0G 50V capacitor. **C-1001-100nF** is a 0.1uF 0805 X7R 50V capacitor. And so forth.
 
