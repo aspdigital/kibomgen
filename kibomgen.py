@@ -11,6 +11,7 @@
 #   Vendor                  The vendor name
 #   Vendor P/N              The vendor's assigned part number
 #   Package                 Footprint/package
+#   Description             Describes the part
 #   Quantity On Hand        How many of these parts we have in stock (don't need to order)
 #   Price Each (qty 25)     WAG cost for each part, based on last time we looked at Mouser
 #
@@ -204,7 +205,7 @@ for thisPart in lookupList:
             cost = float(price.strip("$")) * float(thisPart['count'])
             print('Price: ', price, '  Extended cost: ', cost)
             # Add this part to the list of all parts/vendors/part numbers.
-            finalBomList.append({'Part Number': thisPart['PartNum'], 'count': thisPart['count'], 'Vendor P/N': part['Vendor P/N'], 'Value': thisPart['value'], 'Vendor': part['Vendor'], 'Package': part['Package'], 'RefDesList': thisPart['RefDesList'], 'Description', part['Description'], 'ext. cost': cost, 'Qty on hand': part['Quantity On Hand']})
+            finalBomList.append({'Part Number': thisPart['PartNum'], 'count': thisPart['count'], 'Vendor P/N': part['Vendor P/N'], 'Value': thisPart['value'], 'Vendor': part['Vendor'], 'Package': part['Package'], 'RefDesList': thisPart['RefDesList'], 'Description': part['Description'], 'ext. cost': cost, 'Qty on hand': part['Quantity On Hand']})
             break;
     else:
         # part was not found! This is an error.
