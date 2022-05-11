@@ -3,6 +3,9 @@
 # Requires a CSV-formatted list of parts.
 # created 2022-05-06 asp, derived from the standard KiCad script bom_csv_grouped_by_value.py
 # Mod: 2022-05-10 asp, having the description in the result BOM is nice
+#                      Add getPrefix() which returns the prefix of a reference designator
+#                      BOM result is now written to the BOM subdirectory of the design. That
+#                      directory is created if necessary.
 #
 ### Requirements for the master parts list CSV file ####
 # It must include the following columns with these exact names:
@@ -99,6 +102,19 @@ def fromNetlistText( aText ):
             return aText
     else:
         return aText
+        
+#
+# Get the prefix (1st letter) of a reference designator.
+# Pass the reference designator as the argument.
+def getPrefix(ref):
+    prefix = ""
+    for c in ref:
+        if c.isalpha():
+            prefix += c
+        else:
+            break
+        
+    return prefix
 
 # Generate an instance of a generic netlist, and load the netlist tree from
 # the command line option. If the file doesn't exist, execution will stop
@@ -150,7 +166,8 @@ for c in components:
     RefDes = c.getRef()
     print("RefDes : ", RefDes, "This component is ", PartNum)
 
-    if RefDes[0] == 'C' or RefDes[0] == 'L' or RefDes[0] == 'R' or RefDes[0] == 'Y':
+    pref = getPrefix(RefDes)
+    if pref in 'CLRY':
         PartNum = PartNum + '-' + c.getValue();
         print('\tNew part number is', PartNum)
         
@@ -220,19 +237,44 @@ for thatPart in finalBomList:
     print("Part: ", thatPart)
     
 #
-# write it to the result csv file.
+# write it to the result csv file in the BOM subdirectory.
+# We will create the BOM directory if necessary.
+# Schematic sends a full path in with the %O argument. We need to insert "BOM" in between
+# the path and the file name.
 #
-finalBomFile = sys.argv[2]
+bomdir = 'BOM'
+
+# argv[2] is a string, we need a path.
+finalBomPath = pathlib.Path(sys.argv[2])
+print("Path to BOM ", finalBomPath)
+# parent is everything but the filename.
+finalBomParent = finalBomPath.parent
+print("finalBomParent = ", finalBomParent)
+# append BOM to the path:
+finalBomDir = finalBomParent/bomdir
+# if the BOM directory does not exist, create it.
+print("finalBomDir = ", finalBomDir)
+try:
+    finalBomDir.mkdir(parents=True, exist_ok=False)
+except FileExistsError:
+    print("Did not create new BOM directory")
+else:
+    print("Created new BOM directory")
+    
+# append the desired file name to the path.
+finalBomFile = finalBomDir/finalBomPath.name
+print("This is the file we're writing: ", finalBomFile)
+
 fieldNames = ['Part Number', 'count', 'RefDesList', 'Vendor P/N', 'Value', 'Vendor',  'Package', 'Description', 'ext. cost', 'Qty on hand']
-print('Writing BOM file ', finalBomFile)
 with open(finalBomFile, 'w') as f:
     # first, write a header with some useful information.
-    hwriter = csv.writer(f)
-    print( "Source file:", net.getSource() )
+    # This is the full path of the actual schematic file.
     srcpath = pathlib.Path( net.getSource() )
     print("Source path: ", srcpath)
+    # this is just the schematic file name.
     src = srcpath.stem
     print("file name: ", src)
+    hwriter = csv.writer(f)
     header = ['Design file:', src, 'Date:', net.getDate()]
     hwriter.writerow(header)
     dwriter = csv.DictWriter(f, fieldnames=fieldNames, dialect='unix')
@@ -240,4 +282,4 @@ with open(finalBomFile, 'w') as f:
     dwriter.writerows(finalBomList)
 f.close()
 # Goodbye, World!
-print ('DONE! BomFile ', sys.argv[2], 'written.')
+print ('DONE! BomFile ', finalBomFile, ' written.')
