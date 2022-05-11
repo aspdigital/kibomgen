@@ -86,7 +86,7 @@ The script requires three command-line arguments (in addition to argv[0] which o
 
 As noted above, when you add the script to the list of BOM generators, Schematic will automatically give the correct set-up for the first two arguments, and you will have to provide the path to the database CSV file.
 
-Press the "Generate" button in the dialog to start the process. The window will show the progress of the script, and at the end the BOM CSV file will be in the same directory as the project.
+Press the "Generate" button in the dialog to start the process. The window will show the progress of the script, and at the end the BOM CSV file will be in a subdirectory of the project called BOM. That directory will be created if it does not exist.
 
 <img width="1607" alt="kibomgen" src="https://user-images.githubusercontent.com/6307155/167672725-457332aa-aa0d-4411-b4c7-c29e0b8bc413.png">
 
